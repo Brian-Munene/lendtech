@@ -21,9 +21,9 @@ from rest_framework import routers
 from transactions.views import PaymentsViewset, LoansViewset, BankAccountTransactionsViewsets
 
 router = routers.DefaultRouter()
-router.register(r'payments', PaymentsViewset)
-router.register(r'loans', LoansViewset)
-router.register(r'bank-accounts', BankAccountTransactionsViewsets)
+router.register(r'payments', PaymentsViewset, basename="payments")
+router.register(r'loans', LoansViewset, basename="loans")
+router.register(r'bank-accounts', BankAccountTransactionsViewsets, basename='bank-accounts')
 
 urlpatterns = [
     path('admin/', admin.site.urls),

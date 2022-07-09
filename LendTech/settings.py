@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     # 3rd party libraries
     'corsheaders',
     'rest_framework',
+    'django_filters',
 
     # project apps
     'accounts',
