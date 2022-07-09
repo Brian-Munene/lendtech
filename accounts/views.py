@@ -1,7 +1,3 @@
-from django.shortcuts import render
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from .serializers import UserSerializer
 from django.contrib.auth import get_user_model
 from rest_framework.response import Response
 from rest_framework import exceptions
@@ -12,30 +8,56 @@ from accounts.serializers import UserSerializer
 from accounts.utils import generate_access_token, generate_refresh_token
 import jwt
 from django.conf import settings
+
 from django.views.decorators.csrf import csrf_protect
+from .serializers import UserSerializer, RegistrationSerializer
+
+User = get_user_model()
 
 
 @api_view(['GET'])
 def profile(request):
     user = request.user
     serialized_user = UserSerializer(user).data
-    return Response({'user': serialized_user })
+    return Response({'user': serialized_user})
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register(request):
+    user_serializer = RegistrationSerializer(data=request.data)
+    if user_serializer.is_valid():
+        user = user_serializer.create()
+        access_token = generate_access_token(user)
+        refresh_token = generate_refresh_token(user)
+
+        response = Response()
+        response.set_cookie(key='refreshtoken', value=refresh_token, httponly=True)
+        _user = User.objects.filter(phone_number=user_serializer.data['phone_number']).first()
+        response.data = {
+
+            'user': UserSerializer(_user).data,
+            'access_token': access_token,
+        }
+        return response
+    else:
+        data = user_serializer.errors
+        return Response(data)
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 @ensure_csrf_cookie
 def login(request):
-    User = get_user_model()
     username = request.data.get('username')
     password = request.data.get('password')
+
     response = Response()
     if (username is None) or (password is None):
-        raise exceptions.AuthenticationFailed(
-            'username and password required')
+        raise exceptions.AuthenticationFailed('username and password required')
 
     user = User.objects.filter(username=username).first()
-    if(user is None):
+    if (user is None):
         raise exceptions.AuthenticationFailed('user not found')
     if (not user.check_password(password)):
         raise exceptions.AuthenticationFailed('wrong password')
@@ -54,11 +76,10 @@ def login(request):
     return response
 
 
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 @csrf_protect
-def refresh_token_view(request):
+def refresh_token(request):
     '''
     To obtain a new access_token this view expects 2 important things:
         1. a cookie that contains a valid refresh_token
@@ -82,7 +103,6 @@ def refresh_token_view(request):
 
     if not user.is_active:
         raise exceptions.AuthenticationFailed('user is inactive')
-
 
     access_token = generate_access_token(user)
     return Response({'access_token': access_token})
