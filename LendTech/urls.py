@@ -30,4 +30,4 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include(accounts_urls)),
     re_path(r'^', include(router.urls)),
-]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
