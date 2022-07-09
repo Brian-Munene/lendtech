@@ -1,13 +1,23 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
-from accounts.models import User
+from accounts.models import User, BankAccounts
+
+
+class BankAccountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BankAccounts
+        fields = ['id', 'name', 'number', 'account_type', 'user', 'amount', 'created_at', 'updated_at']
 
 
 class UserSerializer(serializers.ModelSerializer):
+    bank_account = serializers.SerializerMethodField()
+
+    def get_bank_account(self, obj):
+        return BankAccountSerializer(BankAccounts.objects.get(user=obj)).data
+
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'phone_number', 'first_name', 'last_name', 'is_active']
-
+        fields = ['id', 'username', 'email', 'phone_number', 'first_name', 'last_name', 'is_active', 'bank_account']
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
@@ -15,11 +25,13 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     confirm_password = serializers.CharField(write_only=True, required=True)
+    number = serializers.CharField(required=True)
+    account_type = serializers.CharField(required=True)
 
     class Meta:
         model = User
-
-        fields = ['username', 'email', 'phone_number', 'first_name', 'last_name', 'password', 'confirm_password', 'user_type']
+        fields = ['username', 'email', 'phone_number', 'first_name', 'last_name', 'password', 'confirm_password',
+                  'number', 'account_type', 'user_type']
         
         extra_kwargs = {
             "email":      {"required": True},
@@ -56,8 +68,6 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return clean_phone
 
     def create(self):
-        # Use the `create_user` method we wrote earlier to create a new user.
-        # return User.objects.create_user(**validated_data)
         user = User.objects.create(
             first_name=self.validated_data['first_name'],
             last_name=self.validated_data['last_name'],
@@ -66,7 +76,49 @@ class RegistrationSerializer(serializers.ModelSerializer):
             phone_number=self.validated_data['phone_number'],
             user_type=self.validated_data['user_type'],
         )
-
         user.set_password(self.validated_data['password'])
         user.save()
+
+        bank_account = BankAccounts.objects.create(
+            name=self.validated_data['username'],
+            number=self.validated_data['number'],
+            account_type=self.validated_data['account_type'],
+            user=user
+        )
+        bank_account.save()
         return user
+
+#
+# class CreateBankAccountSerializer(serializers.ModelSerializer):
+#
+#     class Meta:
+#         model = BankAccounts
+#         fields = ['name', 'number', 'account_type', 'user', 'amount']
+#
+#     extra_kwargs = {
+#         "name": {"required": True},
+#         'number': {'required': True},
+#         'account_type': {'required': True},
+#         'amount': {'required': True}
+#     }
+#
+#     def validate(self, attrs):
+#         if not User.objects.filter(email__exact=attrs['user']).exists():
+#             raise serializers.ValidationError({"user": "Pleas enter a valid user"})
+#
+#         if attrs['amount'] < 0:
+#             raise serializers.ValidationError({"amount": "Amount is invalid"})
+#
+#         return attrs
+#
+#     def create(self):
+#         bank_account = BankAccounts.objects.create(
+#             name=self.validated_data['name'],
+#             number=self.validated_data['number'],
+#             account_type=self.validated_data['account_type'],
+#             user=self.validated_data['user'],
+#             amount=self.validated_data['amount'],
+#         )
+#         bank_account.save()
+#
+#         return bank_account

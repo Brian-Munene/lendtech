@@ -4,13 +4,14 @@ from rest_framework import exceptions
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
 from django.views.decorators.csrf import ensure_csrf_cookie
-from accounts.serializers import UserSerializer
-from accounts.utils import generate_access_token, generate_refresh_token
+from rest_framework.views import APIView
+from .utils import get_tokens_for_user
 import jwt
 from django.conf import settings
 
 from django.views.decorators.csrf import csrf_protect
-from .serializers import UserSerializer, RegistrationSerializer
+from .serializers import UserSerializer, RegistrationSerializer, BankAccountSerializer
+
 
 User = get_user_model()
 
@@ -28,16 +29,12 @@ def register(request):
     user_serializer = RegistrationSerializer(data=request.data)
     if user_serializer.is_valid():
         user = user_serializer.create()
-        access_token = generate_access_token(user)
-        refresh_token = generate_refresh_token(user)
 
         response = Response()
-        response.set_cookie(key='refreshtoken', value=refresh_token, httponly=True)
         _user = User.objects.filter(phone_number=user_serializer.data['phone_number']).first()
-        response.data = {
 
+        response.data = {
             'user': UserSerializer(_user).data,
-            'access_token': access_token,
         }
         return response
     else:
@@ -45,35 +42,25 @@ def register(request):
         return Response(data)
 
 
-@api_view(['POST'])
-@permission_classes([AllowAny])
-@ensure_csrf_cookie
-def login(request):
-    username = request.data.get('username')
-    password = request.data.get('password')
+class LoginView(APIView):
+    permission_classes = [AllowAny]
 
-    response = Response()
-    if (username is None) or (password is None):
-        raise exceptions.AuthenticationFailed('username and password required')
+    def post(self, request):
+        User = get_user_model()
+        email = request.data.get("username")
+        password = request.data.get("password")
+        response = Response()
+        if (email is None) or (password is None):
+            raise exceptions.AuthenticationFailed("email and password required")
+        user = User.objects.filter(email=email).first()
+        if user is None:
+            raise exceptions.AuthenticationFailed("user not found")
+        if not user.check_password(password):
+            raise exceptions.AuthenticationFailed("wrong password")
 
-    user = User.objects.filter(username=username).first()
-    if (user is None):
-        raise exceptions.AuthenticationFailed('user not found')
-    if (not user.check_password(password)):
-        raise exceptions.AuthenticationFailed('wrong password')
-
-    serialized_user = UserSerializer(user).data
-
-    access_token = generate_access_token(user)
-    refresh_token = generate_refresh_token(user)
-
-    response.set_cookie(key='refreshtoken', value=refresh_token, httponly=True)
-    response.data = {
-        'access_token': access_token,
-        'user': serialized_user,
-    }
-
-    return response
+        token = get_tokens_for_user(user)
+        response.data = token
+        return response
 
 
 @api_view(['POST'])
@@ -106,3 +93,4 @@ def refresh_token(request):
 
     access_token = generate_access_token(user)
     return Response({'access_token': access_token})
+

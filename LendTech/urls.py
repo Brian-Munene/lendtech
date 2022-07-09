@@ -14,10 +14,19 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from accounts import urls as accounts_urls
+# from transactions import urls as transactions_urls
+from rest_framework import routers
+from transactions.views import PaymentsViewset, LoansViewset, BankAccountTransactionsViewsets
+
+router = routers.DefaultRouter()
+router.register(r'payments', PaymentsViewset)
+router.register(r'loans', LoansViewset)
+router.register(r'bank-accounts', BankAccountTransactionsViewsets)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include(accounts_urls)),
+    re_path(r'^', include(router.urls)),
 ]

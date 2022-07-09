@@ -24,3 +24,17 @@ def generate_refresh_token(user):
         refresh_token_payload, settings.SECRET_KEY, algorithm='HS256')
 
     return refresh_token
+
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from accounts.serializers import UserSerializer
+
+
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+
+    return {
+        "refresh": str(refresh),
+        "access": str(refresh.access_token),
+        "user": UserSerializer(user).data,
+    }
