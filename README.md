@@ -41,4 +41,9 @@ A loggedIn user can make a payment to another account in the system by making a 
 
 ### Viewing a Payments
 
-A loggedIn user can view payments usin [View Payments](https://lendttech.herokuapp.com/payments/)
+A loggedIn user can view payments using [View Payments](https://lendttech.herokuapp.com/payments/)
+
+## How to Test
+
+To run the tests first set up the project on your local machine as you would set up a normal Django project.
+Inside your virtual environment use the command  ```python manage.py test --with-coverage``` to run all tests and show the coverage report of the tests in the application.
