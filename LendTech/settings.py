@@ -32,7 +32,7 @@ SECRET_KEY = env("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['lendttech.herokuapp.com']
+ALLOWED_HOSTS = ['127.0.0.1', 'lendttech.herokuapp.com']
 
 
 # Application definition
@@ -49,10 +49,18 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'django_filters',
+    'django_nose',
 
     # project apps
     'accounts',
     'transactions'
+]
+
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+
+NOSE_ARGS = [
+    '--with-coverage',
+    '--cover-package=transactions',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
