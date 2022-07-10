@@ -6,28 +6,12 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 from ..models import Loans, Payments, BankAccountTransactions
+from accounts.models import BankAccounts
+
 
 class TestLoans(APITestCase):
 
-    def authenticate(self):
-        # self.client.post(reverse('register'),{
-        #     "username": "Ian",
-        #     "email": "Ian@gmail.com",
-        #     "first_name": "Ian",
-        #     "last_name": "Nene",
-        #     "password": "secretkey",
-        #     "confirm_password": "secretkey",
-        #     "phone_number": "0706484207",
-        #     "user_type": "INDIVIDUAL",
-        #     "number": "12343",
-        #     "account_type": "BANK"
-        # })
-        # response = self.client.post(reverse("login"),{
-        #     "username": "Ian@gmail.com",
-        #     "password": "secretkey"
-        # })
-        # self.client.credentials(HTTP_AUTHORIZATION=f"Token  {response.data['token']}")
-        # force_authenticate(response, user=self.user)
+    def setUp(self):
         user = User.objects.create(
             username="Brian",
             email="Brian@gmail.com",
@@ -37,15 +21,14 @@ class TestLoans(APITestCase):
             phone_number="0706484701",
             user_type="INDIVIDUAL",
         )
-        client = APIClient()
-        client.force_authenticate(user=user)
+        self.client.force_authenticate(user=user)
 
     def test_should_not_view_loans_with_no_auth(self):
-        response = self.client.get(reverse("loans-list"))
+        client = APIClient()
+        response = client.get(reverse("loans-list"))
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_should_view_loans(self):
-        self.authenticate()
         response = self.client.get(reverse("loans-list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -62,6 +45,12 @@ class TestPayments(APITestCase):
             phone_number="0706484701",
             user_type="INDIVIDUAL",
         )
+        brian_account = BankAccounts.objects.create(
+            user_id=brian.id,
+            name=brian.username,
+            number=brian.phone_number,
+            account_type='MOBILE'
+        )
         ian = User.objects.create(
             username="ian",
             email="ian@gmail.com",
@@ -71,45 +60,34 @@ class TestPayments(APITestCase):
             phone_number="0706484711",
             user_type="INDIVIDUAL",
         )
+        ian_account = BankAccounts.objects.create(
+            user_id=ian.id,
+            name=ian.username,
+            number=ian.phone_number,
+            account_type='MOBILE'
+        )
         self.casper = Payments.objects.create(
-                payer=brian.id,
-                payee=ian.id,
-                amount=1000.00
-            )
-        self.muffin = Payments.objects.create(
-                payer=brian.id,
-                payee=ian.id,
-                amount=1000.00
-            )
-        self.rambo = Payments.objects.create(
-                payer=brian.id,
-                payee=ian.id,
-                amount=1000.00
-            )
-        self.ricky = Payments.objects.create(
-                payer=brian.id,
-                payee=ian.id,
+                payer=brian_account,
+                payee=ian_account,
                 amount=1000.00
             )
 
-    def authenticate(self):
         user = User.objects.create(
-            username="Brian",
-            email="Brian@gmail.com",
-            first_name="Brian",
+            username="Ryan",
+            email="Ryan@gmail.com",
+            first_name="Ryan",
             last_name="Munene",
             password="secretkey",
-            phone_number="0706484701",
+            phone_number="0706484721",
             user_type="INDIVIDUAL",
         )
-        client = APIClient()
-        client.force_authenticate(user=user)
+        self.client.force_authenticate(user=user)
 
     def test_should_not_view_payments_with_no_auth(self):
-        response = self.client.get(reverse("payments-list"))
+        client = APIClient()
+        response = client.get(reverse("payments-list"))
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_should_view_payment(self):
-        self.authenticate()
         response = self.client.get(reverse("payments-list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
