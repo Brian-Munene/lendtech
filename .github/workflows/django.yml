@@ -16,7 +16,7 @@ jobs:
         include:
           - db: postgres
             db_user: postgres
-            db_password: safeSafari
+            db_password: postgres
             db_port: 5432
     
     services: 
