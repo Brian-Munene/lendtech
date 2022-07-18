@@ -15,7 +15,7 @@ jobs:
         db: [postgres]
         include:
           - db: postgres
-            db_user: postgres
+            db_user: user
             db_password: postgres
             db_port: 5432
     
