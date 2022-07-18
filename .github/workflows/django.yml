@@ -47,11 +47,11 @@ jobs:
       env:
         DEBUG: "0"
         DJANGO_ALLOWED_HOSTS: localhost 127.0.0.1 [::1]
-        DB: ${{ matrix.db }}
+        DB: postgres
         DB_HOST: 127.0.0.1
-        DB_USER: ${{ matrix.db_user }}
-        DB_PORT: ${{ matrix.db_port }}
-        DB_PASSWORD: ${{ matrix.db_password }}
+        DB_USER: postgres
+        DB_PORT: 5432
+        DB_PASSWORD: postgres
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
       run: |
         python manage.py test
