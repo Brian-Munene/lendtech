@@ -47,7 +47,7 @@ jobs:
       env:
         DEBUG: "0"
         DJANGO_ALLOWED_HOSTS: localhost 127.0.0.1 [::1]
-        DATABASE_URL: 'postgres://postgres:postgres@localhost:5432/postgres'
+        DATABASE_URL: 'postgres://postgres:postgres@localhost:${{ job.services.postgres.ports[5432] }}//postgres'
 #         DB: ${{ matrix.db }}
 #         DB_HOST: 127.0.0.1
 #         DB_USER: ${{ matrix.db_user }}
