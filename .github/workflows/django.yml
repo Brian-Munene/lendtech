@@ -14,7 +14,7 @@ jobs:
         python-version: [3.9]
         db: [postgres]
         include:
-          - db: lendtech
+          - db: poastgres
             db_user: postgres
             db_password: postgres
             db_port: 5432
@@ -47,11 +47,12 @@ jobs:
       env:
         DEBUG: "0"
         DJANGO_ALLOWED_HOSTS: localhost 127.0.0.1 [::1]
-        DB: ${{ matrix.db }}
-        DB_HOST: 127.0.0.1
-        DB_USER: ${{ matrix.db_user }}
-        DB_PORT: ${{ matrix.db_port }}
-        DB_PASSWORD: ${{ matrix.db_password }}
+        DATABASE_URL: 'postgres://postgres:postgres@localhost:5432/postgres'
+#         DB: ${{ matrix.db }}
+#         DB_HOST: 127.0.0.1
+#         DB_USER: ${{ matrix.db_user }}
+#         DB_PORT: ${{ matrix.db_port }}
+#         DB_PASSWORD: ${{ matrix.db_password }}
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
       run: |
         python manage.py test
