@@ -3,8 +3,6 @@ name: Django CI
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
   build:
@@ -49,7 +47,7 @@ jobs:
         DB: ${{ matrix.db }}
         DB_HOST: 127.0.0.1
         DB_PORT: ${{ matrix.db_port }}
-        DB_PASSWORD: hunter2
+        DB_PASSWORD: safeSafari
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
       run: |
         python manage.py test
