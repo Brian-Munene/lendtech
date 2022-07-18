@@ -14,17 +14,18 @@ jobs:
         python-version: [3.9]
         db: [postgres]
         include:
-          - db: postgres
+          - db: lendtech
             db_user: postgres
             db_password: safeSafari
             db_port: 5432
     
     services: 
       postgres:
-        image: postgres:13
-        env: 
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: safeSafari
+        image: postgres:latest
+        env:
+          POSTGRES_DB: ${{ matrix.db }}
+          POSTGRES_USER: ${{ matrix.db_user }}
+          POSTGRES_PASSWORD: ${{ matrix.db_password }}
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
