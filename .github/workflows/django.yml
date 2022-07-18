@@ -27,6 +27,9 @@ jobs:
         pip install -r requirements.txt
     - name: Run Tests
       env:
+        DEBUG: "0"
+        DATABASE_NAME: "lendtech"
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
       run: |
         python manage.py test
